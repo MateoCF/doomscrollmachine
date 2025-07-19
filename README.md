@@ -1,5 +1,7 @@
 # The Doomscroll Machine
 
+[doomscrollmachine.com](https://www.doomscrollmachine.com)
+
 ## Description
 
 In response to ever-decreasing attention spans due to short-form content, I've "developed" a website that transforms any YouTube video into a scrollable feed of 15-second segments. I say "developed", as this was nearly entirely created with AI to demonstrate how easy it is for anyone to create interfaces that exasterbate our problematic relationship with online content. 
