@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="shortcut icon" href="eye.png" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body {
@@ -77,16 +78,21 @@
 <body class="bg-black text-white">
 
     <!-- Initial UI for URL Input -->
-    <div id="input-container" class="fixed inset-0 z-40 flex flex-col items-center justify-center bg-black bg-opacity-95 transition-opacity duration-500 ease-in-out">
+    <div id="input-container" class="fixed inset-0 z-40 flex flex-col items-center md:justify-center bg-black bg-opacity-95 transition-opacity duration-500 ease-in-out p-4 overflow-y-auto">
         <div class="text-center">
-            <h1 class="text-4xl md:text-6xl font-black tracking-tighter mb-2">The Doomscroll Machine</h1>
+            <h1 class="text-5xl md:text-6xl font-black tracking-tighter mb-2 mt-12 md:mt-0">The Doomscroll Machine</h1>
             <p class="text-lg md:text-xl text-gray-400 mb-8">Paste a YouTube URL to create a scrollable feed.</p>
         </div>
         <div class="w-full max-w-md px-4">
             <input id="youtube-url" type="text" placeholder="e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ" class="w-full p-4 rounded-lg bg-gray-900 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all">
-            <button id="generate-feed" class="w-full mt-4 p-4 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg transition-transform transform hover:scale-105">
-                Generate Feed
-            </button>
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <button id="generate-feed" class="w-full p-4 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg transition-transform transform hover:scale-105">
+                    Generate Feed
+                </button>
+                <button id="random-video-btn" class="w-full p-4 bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-lg transition-transform transform hover:scale-105">
+                    Surprise Me!
+                </button>
+            </div>
         </div>
         <div id="loading-indicator" class="mt-8 text-white text-center hidden">
             <svg class="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -97,13 +103,13 @@
         </div>
 
         <!-- About Section -->
-        <div class="absolute bottom-8 text-center text-gray-500 px-6 max-w-2xl">
+        <div class="text-center text-gray-500 px-6 max-w-2xl mt-16">
             <h3 class="font-bold text-gray-400">About This Absurdity</h3>
             <p class="text-sm mt-1">
                 Built for the modern brain that craves constant, bite-sized stimulation. We take perfectly good YouTube videos and chop them into a relentless, scrollable feed because, let's be honest, who has the time for a full 4-minute video anymore? Consider this your doomscroll rehab... or enabler. You decide.
             </p>
              <p class="text-xs mt-4">
-                A project by <a href="https://mateocf.github.io/" target="_blank" class="text-red-400 hover:underline">Mateo</a>.
+                A project by <a href="./about.html" target="_blank" class="text-red-400 hover:underline">Mateo</a>.
             </p>
         </div>
     </div>
@@ -147,11 +153,18 @@
         let players = {}; // Stores all active YT.Player instances
         let observer; // The IntersectionObserver instance
         let videoId = '';
+        const randomVideoList = [
+            '6xpE2-IGPy8', // baldwin love
+            'eF9BtrX0YEE', // chomsky 
+            'UoCrx0scCkM', // zappa mental health
+            'A_ujr9gi3wk', // dfw tvs
+        ];
 
         // --- DOM ELEMENTS ---
         const inputContainer = document.getElementById('input-container');
         const urlInput = document.getElementById('youtube-url');
         const generateBtn = document.getElementById('generate-feed');
+        const randomVideoBtn = document.getElementById('random-video-btn');
         const feedContainer = document.getElementById('feed-container');
         const loadingIndicator = document.getElementById('loading-indicator');
         const backButton = document.getElementById('back-button');
@@ -168,6 +181,7 @@
          */
         window.onYouTubeIframeAPIReady = () => {
             generateBtn.addEventListener('click', handleGenerateFeed);
+            randomVideoBtn.addEventListener('click', handleRandomVideo);
             backButton.addEventListener('click', resetToInput);
             closeCommentsModalBtn.addEventListener('click', closeCommentsModal);
             commentsModal.addEventListener('click', (e) => {
@@ -195,19 +209,18 @@
             const matches = url.match(regex);
             return matches ? matches[1] : null;
         }
-
+        
         /**
-         * Handles the 'Generate Feed' button click.
+         * Starts the process of creating the video feed.
+         * @param {string} id The YouTube video ID.
          */
-        function handleGenerateFeed() {
-            videoId = extractVideoId(urlInput.value);
-            if (!videoId) {
-                showMessage("Invalid YouTube URL. Please try again.", true);
-                return;
-            }
+        function startFeedGeneration(id) {
+            videoId = id;
             loadingIndicator.style.display = 'block';
             generateBtn.disabled = true;
+            randomVideoBtn.disabled = true;
             urlInput.disabled = true;
+
             const tempPlayerDiv = document.createElement('div');
             tempPlayerDiv.id = 'temp-player';
             tempPlayerDiv.style.display = 'none';
@@ -219,6 +232,28 @@
         }
 
         /**
+         * Handles the 'Generate Feed' button click.
+         */
+        function handleGenerateFeed() {
+            const id = extractVideoId(urlInput.value);
+            if (!id) {
+                showMessage("Invalid YouTube URL. Please try again.", true);
+                return;
+            }
+            startFeedGeneration(id);
+        }
+
+        /**
+         * Handles the 'Surprise Me' button click.
+         */
+        function handleRandomVideo() {
+            const randomIndex = Math.floor(Math.random() * randomVideoList.length);
+            const randomId = randomVideoList[randomIndex];
+            urlInput.value = `https://www.youtube.com/watch?v=${randomId}`;
+            startFeedGeneration(randomId);
+        }
+
+        /**
          * Resets the UI back to the initial URL input screen.
          */
         function resetToInput() {
@@ -227,6 +262,10 @@
             feedContainer.innerHTML = '';
             inputContainer.classList.remove('opacity-0', 'pointer-events-none');
             backButton.classList.add('hidden');
+            urlInput.value = '';
+            generateBtn.disabled = false;
+            randomVideoBtn.disabled = false;
+            urlInput.disabled = false;
         }
 
         /**
@@ -236,6 +275,7 @@
             showMessage("Could not load video. It may be private or restricted.", true);
             loadingIndicator.style.display = 'none';
             generateBtn.disabled = false;
+            randomVideoBtn.disabled = false;
             urlInput.disabled = false;
             document.getElementById('temp-player')?.remove();
         }
@@ -261,6 +301,7 @@
                 showMessage("Video is too short to create clips.", true);
                 loadingIndicator.style.display = 'none';
                 generateBtn.disabled = false;
+                randomVideoBtn.disabled = false;
                 urlInput.disabled = false;
                 return;
             }
@@ -298,8 +339,6 @@
             inputContainer.classList.add('opacity-0', 'pointer-events-none');
             backButton.classList.remove('hidden');
             loadingIndicator.style.display = 'none';
-            generateBtn.disabled = false;
-            urlInput.disabled = false;
         }
 
         /**
